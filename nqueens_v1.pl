@@ -20,9 +20,9 @@ noattack(X, [Y|Ys], M) :-
   noattack(X, Ys, M1).
 
 generate(Sol) :-
-  search().
+  search(Sol, 0, input_order, indomain, complete, []).
 
-go(N) :-
+go(N, NSols, Time) :-
   cputime(T1),
   findall(Sol, nqueens(N, Sol), Sols),
   cputime(T2),
