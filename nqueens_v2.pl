@@ -20,8 +20,7 @@ noattack(Column1, [Column2|Columns], Offset) :-
   noattack(Column1, Columns, NewOffset).
 
 generate([]).
-generate(Columns) :-
-  deleteff(Column, Columns, RestColumns)     % delete first fail (MRV heuristic)
+generate([Column|Columns]) :-
   indomain(Column),
   generate(Columns).
 
