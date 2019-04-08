@@ -10,7 +10,7 @@ numpart(N, SubSet1, SubSet2) :-
   SubSet1 = [First|_], First #= 1,
   get_sum(SubSet1, S1), get_sum(SubSet2, S2),
   get_square_sum(SubSet1, SQ1), get_square_sum(SubSet2, SQ2),
-  eval(S1) #= eval(S2), eval(SQ1) #= eval(SQ2),
+  eval(S1) #= eval(S2),eval(SQ1) #= eval(SQ2),
   search(Set, 0, input_order, indomain_min, complete, []).
 
 get_sum([], 0).
