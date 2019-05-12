@@ -32,9 +32,19 @@ get_sign(_, _, 0).
 
 get_false_clauses([], 0).
 get_false_clauses([HeadFS|TailFS], FC) :-
-  % At least one element of HeadFS is True
+  % A clause is true if and only if at least one element of the clause is true
+  % In case of zero true statements, the clase is false
+  %evaluate_clause(HeadFS, TS), TS #= 0,
   get_false_clauses(TailFS, NFC),
   FC is NFC + 1.
+
+evaluate_clause([], 0).
+evaluate_clause([HeadClause|TailClause], TS) :-
+  is_true(HeadClause),
+  evaluate_clause(TailClause, NTS),
+  TS is NTS + 1.
+
+is_true(Sign - Value) :- Sign + Value #>= 1.
 
 create_formula(NVars, NClauses, Density, Formula) :-
    formula(NVars, 1, NClauses, Density, Formula).
