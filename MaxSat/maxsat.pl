@@ -36,16 +36,19 @@ get_false_clauses([HeadFS|TailFS], MFC, FC) :-
   % In case of zero true statements, the clase is false
   writeln(HeadFS),
   evaluate_clause(HeadFS, TS),
-  NFC is MFC + 1,
+  NFC #= MFC + 1,
   get_false_clauses(TailFS, NFC, FC).
 
 evaluate_clause([], 0).
 evaluate_clause([HeadClause|TailClause], TS) :-
-  is_true(HeadClause),
+  is_true(HeadClause, EV),
   evaluate_clause(TailClause, NTS),
-  TS is NTS + 1.
+  TS #= NTS + EV.
 
-is_true(Sign - Value) :- Sign + Value #>= 1.
+is_true(0 - 0, 1).
+is_true(1 - 1, 1).
+is_true(1 - 0, 0).
+is_true(0 - 1, 0).
 
 create_formula(NVars, NClauses, Density, Formula) :-
    formula(NVars, 1, NClauses, Density, Formula).
