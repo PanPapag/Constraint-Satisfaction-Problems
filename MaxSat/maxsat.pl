@@ -6,7 +6,7 @@ maxsat(NV, NC, D, F, S, M) :-
   create_formula(NV, NC, D, F),
   def_vars(S, NV),
   make_FSList(F, S, FS), writeln(FS),
-  get_false_clauses(FS, FC),
+  get_false_clauses(FS, 0, FC),
   Cost #= FC,
   bb_min(search(S, 0, input_order, indomain, complete, []), Cost, _),
   M is NC - FC.
@@ -30,14 +30,14 @@ make_sub_FSList([HeadSubF|TailSubF], S, [Sign - IsInS | RemSubFS]) :-
 get_sign(Element, Element, 1) :- !.
 get_sign(_, _, 0).
 
-get_false_clauses([], 0).
-get_false_clauses([HeadFS|TailFS], FC) :-
+get_false_clauses([], FC, FC).
+get_false_clauses([HeadFS|TailFS], MFC, FC) :-
   % A clause is true if and only if at least one element of the clause is true
   % In case of zero true statements, the clase is false
   writeln(HeadFS),
   evaluate_clause(HeadFS, TS),
-  get_false_clauses(TailFS, NFC),
-  FC is NFC + 1.
+  NFC is MFC + 1,
+  get_false_clauses(TailFS, NFC, FC).
 
 evaluate_clause([], 0).
 evaluate_clause([HeadClause|TailClause], TS) :-
