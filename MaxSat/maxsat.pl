@@ -34,7 +34,8 @@ get_false_clauses([], 0).
 get_false_clauses([HeadFS|TailFS], FC) :-
   % A clause is true if and only if at least one element of the clause is true
   % In case of zero true statements, the clase is false
-  %evaluate_clause(HeadFS, TS), TS #= 0,
+  writeln(HeadFS),
+  evaluate_clause(HeadFS, TS),
   get_false_clauses(TailFS, NFC),
   FC is NFC + 1.
 
