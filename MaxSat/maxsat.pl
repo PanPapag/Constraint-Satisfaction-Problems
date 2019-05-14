@@ -1,15 +1,16 @@
 :- lib(ic).
 :- lib(branch_and_bound).
 :- lib(listut).
+:- [create_formula].
 
 maxsat(NV, NC, D, F, S, M) :-
   create_formula(NV, NC, D, F),
   def_vars(S, NV),
   make_FSList(F, S, FS), writeln(FS),
-  get_false_clauses(FS, 0, FC),
-  Cost #= FC,
+  get_list_of_false_clauses(FS, FC), writeln(FC),
+  Cost #= sum(FC),
   bb_min(search(S, 0, input_order, indomain, complete, []), Cost, _),
-  M is NC - FC.
+  M is NC - sum(FC).
 
 def_vars(S ,NV) :-
   length(S, NV),
@@ -30,25 +31,16 @@ make_sub_FSList([HeadSubF|TailSubF], S, [Sign - IsInS | RemSubFS]) :-
 get_sign(Element, Element, 1) :- !.
 get_sign(_, _, 0).
 
-get_false_clauses([], FC, FC).
-get_false_clauses([HeadFS|TailFS], MFC, FC) :-
-  % A clause is true if and only if at least one element of the clause is true
-  % In case of zero true statements, the clase is false
-  writeln(HeadFS),
-  evaluate_clause(HeadFS, TS),
-  NFC #= MFC + 1,
-  get_false_clauses(TailFS, NFC, FC).
+get_list_of_false_clauses([], []).
+get_list_of_false_clauses([HeadFS|TailFS], [EV|TailFC]) :-
+  evaluate_clause(HeadFS, EV),
+  get_list_of_false_clauses(TailFS, TailFC).
 
 evaluate_clause([], 0).
-evaluate_clause([HeadClause|TailClause], TS) :-
-  is_true(HeadClause, EV),
-  evaluate_clause(TailClause, NTS),
-  TS #= NTS + EV.
-
-is_true(0 - 0, 1).
-is_true(1 - 1, 1).
-is_true(1 - 0, 0).
-is_true(0 - 1, 0).
+evaluate_clause([0 - 0|_], 1).
+evaluate_clause([1 - 1|_], 1).
+evaluate_clause([1 - 0|TailClause], Res) :- evaluate_clause(TailClause, Res).
+evaluate_clause([0 - 1|TailClause], Res) :- evaluate_clause(TailClause, Res).
 
 create_formula(NVars, NClauses, Density, Formula) :-
    formula(NVars, 1, NClauses, Density, Formula).
