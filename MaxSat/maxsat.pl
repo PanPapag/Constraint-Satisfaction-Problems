@@ -6,11 +6,11 @@
 maxsat(NV, NC, D, F, S, M) :-
   create_formula(NV, NC, D, F),
   def_vars(S, NV),
-  make_FSList(F, S, FS), writeln(FS),
-  get_list_of_false_clauses(FS, FC), writeln(FC),
-  Cost #= sum(FC),
-  bb_min(search(S, 0, input_order, indomain, complete, []), Cost, strategy:restart),
-  M is NC - sum(FC).
+  make_FSList(F, S, FS),
+  evaluate_all_clauses(FS, EC),
+  Cost #= sum(EC),
+  bb_min(search(S, 0, first_fail, indomain_middle, complete, []), Cost, _),
+  M is NC - Cost.
 
 def_vars(S ,NV) :-
   length(S, NV),
@@ -22,22 +22,22 @@ make_FSList([HeadF|TailF], S, [NewFS|RemFS]) :-
   make_FSList(TailF, S, RemFS).
 
 make_sub_FSList([], _, []).
-make_sub_FSList([HeadSubF|TailSubF], S, [Sign - IsInS | RemSubFS]) :-
+make_sub_FSList([HeadSubF|TailSubF], S, [Sign - InS | RemSubFS]) :-
   abs(HeadSubF, AbsHeadSubF),
   get_sign(HeadSubF, AbsHeadSubF, Sign),
-  nth1(AbsHeadSubF, S, IsInS),
+  nth1(AbsHeadSubF, S, InS),
   make_sub_FSList(TailSubF, S, RemSubFS).
 
-get_sign(Element, Element, 1) :- !.
+get_sign(Element, Element, 1).
 get_sign(_, _, 0).
 
-get_list_of_false_clauses([], []).
-get_list_of_false_clauses([HeadFS|TailFS], [EV|TailFC]) :-
+evaluate_all_clauses([], []).
+evaluate_all_clauses([HeadFS|TailFS], [EV|TailFC]) :-
   evaluate_clause(HeadFS, EV),
-  get_list_of_false_clauses(TailFS, TailFC).
+  evaluate_all_clauses(TailFS, TailFC).
 
-evaluate_clause([], 0).
-evaluate_clause([0 - 0|_], 1).
-evaluate_clause([1 - 1|_], 1).
-evaluate_clause([1 - 0|TailClause], Res) :- evaluate_clause(TailClause, Res).
-evaluate_clause([0 - 1|TailClause], Res) :- evaluate_clause(TailClause, Res).
+evaluate_clause([], 1).
+evaluate_clause([0 - 1|_], 0).
+evaluate_clause([1 - 0|_], 0).
+evaluate_clause([0 - 0|TailClause], Res) :- evaluate_clause(TailClause, Res).
+evaluate_clause([1 - 1|TailClause], Res) :- evaluate_clause(TailClause, Res).
