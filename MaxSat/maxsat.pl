@@ -9,7 +9,7 @@ maxsat(NV, NC, D, F, S, M) :-
   make_FSList(F, S, FS), writeln(FS),
   get_list_of_false_clauses(FS, FC), writeln(FC),
   Cost #= sum(FC),
-  bb_min(search(S, 0, input_order, indomain, complete, []), Cost, _),
+  bb_min(search(S, 0, input_order, indomain, complete, []), Cost, strategy:restart),
   M is NC - sum(FC).
 
 def_vars(S ,NV) :-
