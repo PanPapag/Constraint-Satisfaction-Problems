@@ -5,12 +5,14 @@
 
 maxsat(NV, NC, D, F, S, M) :-
   create_formula(NV, NC, D, F),
-  def_vars(S, NV),
-  make_FSList(F, S, FS), !,
+  def_vars(TempS, NV),
+  make_FSList(F, TempS, FS), !,
   evaluate_all_clauses(FS, EV),
   Cost #= -sum(EV),
-  bb_min(search(S, 0, first_fail, indomain_middle, complete, []), Cost, _),
-  count_true_clauses(FS, M).
+  bb_min(search(TempS, 0, first_fail, indomain_middle, complete, []), Cost, _),
+  fix_S(TempS, S),
+  count_true_clauses(FS, ListM),
+  sum_list(ListM, M).
 
 def_vars(S ,NV) :-
   length(S, NV),
@@ -39,3 +41,23 @@ evaluate_all_clauses([HeadFS|TailFS], [EVClause|RemClauses]) :-
 evaluate_clause([], -1).
 evaluate_clause([Sign - Value|TailC], Sign*Value+EV) :-
   evaluate_clause(TailC, EV).
+
+fix_S([], []).
+fix_S([-1|TailTempS], [0|TailS]) :- fix_S(TailTempS, TailS).
+fix_S([1|TailTempS], [1|TailS]) :- fix_S(TailTempS, TailS).
+
+count_true_clauses([], []).
+count_true_clauses([HeadFS|TailFS], [EV|EVRes]) :-
+  final_evaluation(HeadFS, EV),
+  count_true_clauses(TailFS, EVRes).
+
+final_evaluation([], 0).
+final_evaluation([-1 - -1|_], 1).
+final_evaluation([-1 - 1|TailClause], Res) :- final_evaluation(TailClause, Res).
+final_evaluation([1 - 1|_], 1).
+final_evaluation([1 - -1|TailClause], Res) :- final_evaluation(TailClause, Res).
+
+sum_list([], 0).
+sum_list([H|T], Sum) :-
+   sum_list(T, Rest),
+   Sum is H + Rest.
