@@ -6,15 +6,15 @@
 maxsat(NV, NC, D, F, S, M) :-
   create_formula(NV, NC, D, F),
   def_vars(S, NV),
-  make_FSList(F, S, FS),
-  evaluate_all_clauses(FS, EC),
-  Cost #= sum(EC),
+  make_FSList(F, S, FS), !,
+  evaluate_all_clauses(FS, EV),
+  Cost #= -sum(EV),
   bb_min(search(S, 0, first_fail, indomain_middle, complete, []), Cost, _),
-  M is NC - Cost.
+  count_true_clauses(FS, M).
 
 def_vars(S ,NV) :-
   length(S, NV),
-  S #:: 0..1.
+  S #:: [-1,1].
 
 make_FSList([], _, []).
 make_FSList([HeadF|TailF], S, [NewFS|RemFS]) :-
@@ -29,15 +29,13 @@ make_sub_FSList([HeadSubF|TailSubF], S, [Sign - InS | RemSubFS]) :-
   make_sub_FSList(TailSubF, S, RemSubFS).
 
 get_sign(Element, Element, 1).
-get_sign(_, _, 0).
+get_sign(_, _, -1).
 
 evaluate_all_clauses([], []).
-evaluate_all_clauses([HeadFS|TailFS], [EV|TailFC]) :-
-  evaluate_clause(HeadFS, EV),
-  evaluate_all_clauses(TailFS, TailFC).
+evaluate_all_clauses([HeadFS|TailFS], [EVClause|RemClauses]) :-
+  evaluate_clause(HeadFS, EVClause),
+  evaluate_all_clauses(TailFS, RemClauses).
 
-evaluate_clause([], 1).
-evaluate_clause([0 - 1|_], 0).
-evaluate_clause([1 - 0|_], 0).
-evaluate_clause([0 - 0|TailClause], Res) :- evaluate_clause(TailClause, Res).
-evaluate_clause([1 - 1|TailClause], Res) :- evaluate_clause(TailClause, Res).
+evaluate_clause([], -1).
+evaluate_clause([Sign - Value|TailC], Sign*Value+EV) :-
+  evaluate_clause(TailC, EV).
