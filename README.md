@@ -15,3 +15,5 @@ ECLiPSe environment for constraint programming is mandatory in order to test the
 ```
 https://eclipseclp.org/download.html
 ```
+
+## Problems description 
