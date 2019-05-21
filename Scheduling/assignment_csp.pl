@@ -4,7 +4,7 @@
 %:- [big_activity].
 
 assignment_csp(NP, ST, ASP, Solution) :-
-  findall(activity(A,act(S,E)), activity(A,act(S,E)), Activities),              
+  findall(activity(A,act(S,E)), activity(A,act(S,E)), Activities),
   length(Activities, NA),
   init_TS(NP, PTS),
   def_var(Solution, NP, NA),
@@ -22,8 +22,8 @@ def_var(S, NP, NA) :-
 
 constrain(_, _, [], []).
 constrain(ST, PTS, [activity(_,act(S,E))|RestActivities], [P|RP]) :-
-  nth1(P, PTS, TS), S - TS #>= 1,
-  replace(PTS, P, S, NPTS),
+  nth1(P, PTS, TS), S - TS #>= 1, writeln(PTS),
+  replace(PTS, P, E, NPTS),
   constrain(ST, NPTS, RestActivities, RP).
 
 replace([_|T], 1, X,[X|T]).
