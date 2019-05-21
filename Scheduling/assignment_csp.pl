@@ -11,17 +11,17 @@ assignment_csp(NP, ST, ASP, ASA) :-
   constrain(ST, PTS, PTT, Activities, Solution),
   search(Solution, 0, first_fail, indomain, complete, []),
   construct_ASA(Activities, Solution, ASA).
-
+  %construct_ASP(NP, ASA, RevASP), reverse(RevASP, ASP).
 
 init_PTS(0, []).
 init_PTS(Person, [-1|RTS]) :-
-  NPerson is Person - 1,
-  init_PTS(NPerson, RTS).
+  NextPerson is Person - 1,
+  init_PTS(NextPerson, RTS).
 
 init_PTT(0, []).
 init_PTT(Person, [0|RTT]) :-
-  NPerson is Person - 1,
-  init_PTT(NPerson, RTT).
+  NextPerson is Person - 1,
+  init_PTT(NextPerson, RTT).
 
 def_var(S, NP, NA) :-
   length(S, NA),
@@ -33,11 +33,17 @@ constrain(ST, PTS, PTT, [activity(_,act(S,E))|RestActivities], [P|RP]) :-
   nth1(P, PTT, TT), CTT is TT + E - S, CTT #=< ST, replace(PTT, P, CTT, NPTT),
   constrain(ST, NPTS, NPTT, RestActivities, RP).
 
+construct_ASA([], [], []).
+construct_ASA([activity(A,act(_,_))|RestActivities], [P|RP], [A - P|RestASA]) :-
+  construct_ASA(RestActivities, RP, RestASA).
+
+construct_ASP(0, _, []).
+construct_ASP(Person, ASA, [Person - PA|RestASP]) :-
+  findall(A, member((A - Person), ASA), PA),
+  NextPerson is Person - 1,
+  construct_ASP(NextPerson, ASA, RestASP).
+
 replace([_|T], 1, X,[X|T]).
 replace([H|T], I, X, [H|R]) :-
   I1 is I - 1,
   replace(T, I1, X, R).
-
-construct_ASA([], [], []).
-construct_ASA([activity(A,act(_,_))|RestActivities], [P|RP], [A - P|RestASA]) :-
-  construct_ASA(RestActivities, RP, RestASA).
