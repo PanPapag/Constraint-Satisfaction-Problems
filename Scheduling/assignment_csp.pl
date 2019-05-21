@@ -3,30 +3,41 @@
 :- [small_activity].
 %:- [big_activity].
 
-assignment_csp(NP, ST, ASP, Solution) :-
+assignment_csp(NP, ST, ASP, ASA) :-
   findall(activity(A,act(S,E)), activity(A,act(S,E)), Activities),
   length(Activities, NA),
-  init_TS(NP, PTS),
+  init_PTS(NP, PTS), init_PTT(NP, PTT),
   def_var(Solution, NP, NA),
-  constrain(ST, PTS, Activities, Solution),
-  search(Solution, 0, first_fail, indomain, complete, []).
+  constrain(ST, PTS, PTT, Activities, Solution),
+  search(Solution, 0, first_fail, indomain, complete, []),
+  construct_ASA(Activities, Solution, ASA).
 
-init_TS(0, []).
-init_TS(RP, [-1|RTS]) :-
-  NRP is RP - 1,
-  init_TS(NRP, RTS).
+
+init_PTS(0, []).
+init_PTS(Person, [-1|RTS]) :-
+  NPerson is Person - 1,
+  init_PTS(NPerson, RTS).
+
+init_PTT(0, []).
+init_PTT(Person, [0|RTT]) :-
+  NPerson is Person - 1,
+  init_PTT(NPerson, RTT).
 
 def_var(S, NP, NA) :-
   length(S, NA),
   S #:: 1..NP.
 
-constrain(_, _, [], []).
-constrain(ST, PTS, [activity(_,act(S,E))|RestActivities], [P|RP]) :-
-  nth1(P, PTS, TS), S - TS #>= 1, writeln(PTS),
-  replace(PTS, P, E, NPTS),
-  constrain(ST, NPTS, RestActivities, RP).
+constrain(_, _, _, [], []).
+constrain(ST, PTS, PTT, [activity(_,act(S,E))|RestActivities], [P|RP]) :-
+  nth1(P, PTS, TS), S - TS #>= 1, replace(PTS, P, E, NPTS),
+  nth1(P, PTT, TT), CTT is TT + E - S, CTT #=< ST, replace(PTT, P, CTT, NPTT),
+  constrain(ST, NPTS, NPTT, RestActivities, RP).
 
 replace([_|T], 1, X,[X|T]).
 replace([H|T], I, X, [H|R]) :-
   I1 is I - 1,
   replace(T, I1, X, R).
+
+construct_ASA([], [], []).
+construct_ASA([activity(A,act(_,_))|RestActivities], [P|RP], [A - P|RestASA]) :-
+  construct_ASA(RestActivities, RP, RestASA).
