@@ -6,23 +6,26 @@
 assignment_csp(NP, ST, ASP, ASA) :-
   findall(activity(A,act(S,E)), activity(A,act(S,E)), Activities),
   length(Activities, NA),
-  init_PTS(NP, PTS), init_PTT(NP, PTT),
+  init_PTS(NP, PTS), init_PTT(NP, PTT), !,
   def_var(Solution, NP, NA),
   constrain(ST, PTS, PTT, Activities, Solution),
   search(Solution, 0, first_fail, indomain, complete, []),
   construct_ASA(Activities, Solution, ASA).
   %construct_ASP(NP, ASA, RevASP), reverse(RevASP, ASP).
 
+% init time stamp for each person to -1
 init_PTS(0, []).
 init_PTS(Person, [-1|RTS]) :-
   NextPerson is Person - 1,
   init_PTS(NextPerson, RTS).
 
+% init total time for each person to 0
 init_PTT(0, []).
 init_PTT(Person, [0|RTT]) :-
   NextPerson is Person - 1,
   init_PTT(NextPerson, RTT).
 
+% define a list of length NA (no. of Activities) which takes value between 1 and NP
 def_var(S, NP, NA) :-
   length(S, NA),
   S #:: 1..NP.
