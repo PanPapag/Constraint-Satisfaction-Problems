@@ -35,7 +35,19 @@ assignment_aux(Position, NP, ST, [assigned(activity(_,act(S,E)),Person)|Others])
   Position >= NP,
   constrain(Person, S, E, 0, ST, Others).
 
-constrain(_,S,E,C,ST,[]) :- Dif is E-S, C1 is C+Dif, C1 =< ST.
-constrain(Pos,S,E,C,ST,[assigned(activity(_,act(S1,E1)),Y)|Res]) :- Pos #= Y, Dif is E1-S1, C1 is C+Dif, C1 =< ST, E1 < S, constrain(Pos,S,E,C1,ST,Res).
-constrain(Pos,S,E,C,ST,[assigned(activity(_,act(S1,E1)),Y)|Res]) :- Pos #= Y, Dif is E1-S1, C1 is C+Dif, C1 =< ST, E < S1, constrain(Pos,S,E,C1,ST,Res).
-constrain(Pos,S,E,C,ST,[assigned(activity(_,act(_,_)),Y)|Res]) :- Pos #\= Y, constrain(Pos,S,E,C,ST,Res).
+constrain(_, S, E, CST, ST, []) :-
+  Duration is E - S,
+  CST1 is CST + Duration, CST1 =< ST.
+constrain(Person, S, E, CST, ST,[assigned(activity(_,act(_,_)),Selected)|Others]) :-
+  Person #\= Selected,
+  constrain(Person, S, E, CST, ST, Others).
+constrain(Person, S, E, CST, ST, [assigned(activity(_,act(S1,E1)),Selected)|Others]) :-
+  Person #= Selected,
+  Duration is E1 - S1, E < S1,
+  CST1 is CST + Duration, CST1 =< ST,
+  constrain(Person, S, E, CST1, ST, Others).
+constrain(Person, S, E, CST, ST,[assigned(activity(_,act(S1,E1)),Selected)|Others]) :-
+  Person #= Selected,
+  Duration is E1 - S1, E1 < S,
+  CST1 is CST + Duration, CST1 =< ST,
+  constrain(Person, S, E, CST1, ST, Others).
