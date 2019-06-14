@@ -9,13 +9,12 @@ assignment_csp(NP, ST, ASP, ASA) :-
   length(Activities, NoActs),
   def_vars(Solution, NoActs, NP),
   make_tmpl(Activities, Solution, Assignments),
-  assignment_aux(NoActs, NP, ST, Assignments),
+  compute_A(NP, Activities, A),
+  assignment_aux(NoActs, NP, ST, A, Assignments, Costlist), writeln(Costlist),
   construct_ASA(Assignments, [], ASA),
   construct_ASP(Persons, Assignments, [], ASP), nl,
-  compute_A(NP, Activities, A),
-  compute_Cost(A, ASP, Costlist), writeln(Costlist), 
-  Cost #= sum(Costlist),
-  bb_min(search(Solution, 0, first_fail, indomain, complete, []), Cost, _).
+  %bb_min(search(Solution, 0, first_fail, indomain, complete, []), Cost, _).
+  search(Solution, 0, first_fail, indomain, complete, []).
 
 def_vars(Solution, NoActs, NP) :-
   length(Solution, NoActs),
@@ -25,15 +24,15 @@ make_tmpl([], [], []).
 make_tmpl([activity(A,act(S,E))|RestOfActivities], [Person|RestPeople], [assigned(activity(A,act(S,E)),Person)|Partial]) :-
   make_tmpl(RestOfActivities, RestPeople, Partial).
 
-assignment_aux(_, _, _, []).
-assignment_aux(Position, NP, ST, [assigned(activity(_,act(S,E)),Person)|Others]) :-
+assignment_aux(_, _, _, _, [], []).
+assignment_aux(Position, NP, ST, A, [assigned(activity(_,act(S,E)),Person)|Others], Costlist) :-
   NewPosition is Position - 1,
-  assignment_aux(NewPosition, NP, ST, Others),
+  assignment_aux(NewPosition, NP, ST, A, Others, Costlist),
   Position < NP, Person #= Position,
   constrain(Position, S, E, 0, ST, Others).
-assignment_aux(Position, NP, ST, [assigned(activity(_,act(S,E)),Person)|Others]) :-
+assignment_aux(Position, NP, ST, A, [assigned(activity(_,act(S,E)),Person)|Others], Costlist) :-
   NewPosition is Position - 1,
-  assignment_aux(NewPosition, NP, ST, Others),
+  assignment_aux(NewPosition, NP, ST, A, Others, Costlist),
   Position >= NP,
   constrain(Person, S, E, 0, ST, Others).
 
@@ -83,11 +82,6 @@ compute_D([activity(_,act(S,E))|Res], C, D) :-
 
 between(I, J, I) :- I =< J.
 between(I, J, X) :-
-   I < J,
-   I1 is I+1,
-   between(I1, J, X).
-
-compute_Cost(_, [], []).
-compute_Cost(A, [_ - _ - TT|Next], [C|RC]) :-
- C is (A - TT) * (A - TT),
- compute_Cost(A, Next, RC).
+  I < J,
+  I1 is I+1,
+  between(I1, J, X).
